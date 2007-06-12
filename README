@@ -3,16 +3,86 @@
 ######################################################################
 
 NAME
-    X10::Home - blah blah blah
+    X10::Home - Configure X10 for your Home
 
 SYNOPSIS
+        # /etc/x10.conf Configuration File
+        module: ControlX10::CM11
+        device: /dev/ttyS0
+        receivers:  
+          - name: bedroom_lights
+            code: K15
+            desc: Bedroom Lights
+
         use X10::Home;
+        my $x10->X10::Home->new();
+          # Address services by name
+        $x10->send("bedroom_lights", "on");
 
 DESCRIPTION
-    X10::Home blah blah blah.
+    "X10::Home" lets you set parameters of all your home X10 devices in a
+    single configuration file. After that's done, applications can access
+    them by name and without worrying about details like "house codes",
+    "unit codes", "serial ports", X10 commands and other low-level details.
 
-EXAMPLES
-      $ perl -MX10::Home -le 'print $foo'
+    For example, to switch the bedroom lights on, simply use
+
+        use X10::Home;
+        my $x10->X10::Home->new();
+        $x10->send("bedroom_lights", "on");
+
+    and
+
+        $x10->send("bedroom_lights", "off");
+
+    to switch them off again.
+
+    "X10::Home" uses the "ControlX10::CM11" or "ControlX10::CM17" CPAN
+    modules under the hood to send actual X10 commands via the computer's
+    serial port.
+
+  Configuration File
+    Upon initialization, "X10::Home" will search a configuration file in the
+    following locations (in the order listed):
+
+    *   If "X10::Home::new()" gets called with the "conf_file" parameter
+        set, the configuration will be read from "conf_file".
+
+    *   "~/.x10.conf" (in the user's local home directory) if present
+
+    *   "/etc/x10.conf" if present
+
+    The configuration file is written in YAML format and looks like this:
+
+        # /etc/x10.conf Configuration File
+
+        module:   ControlX10::CM11
+        device:   /dev/ttyS0
+        baudrate: 4800
+
+        receivers:  
+          - name: bedroom_lights
+            code: K15
+            desc: Bedroom Lights
+          - name: living_room_lights
+            code: K16
+            desc: Living Room Lights
+
+    The "module" parameter specifies which X10 low-level module to use
+    "ControlX10::CM11" or "ControlX10::CM17", it defaults to
+    "ControlX10::CM11".
+
+    The "device" parameter specifies the device entry of the serial port to
+    use, it defaults to "/dev/ttyS0". This can be "/dev/ttyS4" or
+    "/dev/ttyS5" if a serial PCI card gets plugged into the computer.
+
+    The "baudrate" is the baud rate to be used to communicate over the
+    serial port. It defaults to 4800.
+
+    The "receivers" parameter specifies an array of receivers. The reason
+    why this is an array an not a hash is that certain applications like to
+    display all available receivers in a predefined order. Receivers are
+    hashed internally by "X10::Home" for quick lookups, though.
 
 LEGALESE
     Copyright 2007 by Mike Schilli, all rights reserved. This program is
@@ -20,5 +90,5 @@ LEGALESE
     terms as Perl itself.
 
 AUTHOR
-    2007, Mike Schilli <cpan@perlmeister.com>
+    2007, Mike Schilli <m@perlmeister.com>
 

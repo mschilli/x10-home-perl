@@ -6,7 +6,7 @@ WriteMakefile(
         ControlX10::CM11   => 0,
         ControlX10::CM17   => 0,
         Log::Log4perl      => 1,
-        YAML               => 1,
+        YAML               => 0.35,
         Device::SerialPort => 1,
     }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
