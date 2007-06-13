@@ -7,6 +7,7 @@ use warnings;
 use YAML qw(LoadFile);
 use Log::Log4perl qw(:easy);
 use Device::SerialPort;
+use Fcntl qw/:flock/;
 
 our $VERSION = "0.01";
 
@@ -14,7 +15,6 @@ my @CONF_PATHS = (
     glob("~/.x10.conf"),
     "/etc/x10.conf",
 );
-my $CONF_FILE = "x10.conf";
 
 ###########################################
 sub new {
@@ -29,6 +29,7 @@ sub new {
           off    => "K",
           status => undef,
         },
+        lockfile   => '/tmp/x10_home.lock',
         %options,
     };
 
@@ -48,9 +49,9 @@ sub init {
         $self->{conf} = LoadFile( $self->{conf_file} );
     } else {
         for my $path (@{ $self->{conf_paths} }) {
-            my $full = "$path/$CONF_FILE";
-            if(-f $full) { 
-                $self->{conf} = LoadFile( $full );
+            if(-f $path) { 
+                $self->{conf} = LoadFile( $path );
+                last;
             }
         }
     }
@@ -59,6 +60,10 @@ sub init {
            join (", ", @{ $self->{conf_paths} }), 
            ")" unless defined $self->{conf};
 
+    if(ref( $self->{conf} ) ne "HASH") {
+        LOGDIE "Configuration file invalid (not a hash)";
+    }
+        
     $self->{conf}->{device}   ||= "/dev/ttyS0";
     $self->{conf}->{module}   ||= "ControlX10::CM11";
     $self->{conf}->{baudrate} ||= 4800;
@@ -96,17 +101,50 @@ sub send {
 
     my $send = "$self->{conf}->{module}" . "::" . "send";
 
-    no strict 'refs';
+    $self->lock();
 
-    DEBUG "Addressing HC=$house_code UC=$unit_code";
-    $send->($self->{serial}, $house_code . $unit_code);
+    {
+      no strict 'refs';
 
-    DEBUG "Sending command $cmd $self->{commands}->{$cmd}";
-    $send->($self->{serial},
-                  $house_code .
-                  $self->{commands}->{$cmd});
+      DEBUG "Addressing HC=$house_code UC=$unit_code";
+      $send->($self->{serial}, $house_code . $unit_code);
+  
+      DEBUG "Sending command $cmd $self->{commands}->{$cmd}";
+      $send->($self->{serial},
+                    $house_code .
+                    $self->{commands}->{$cmd});
+    }
+
+    $self->unlock();
 
     1;
+}
+
+###########################################
+sub lock {
+###########################################
+    my($self) = @_;
+
+    open my $fh, ">>$self->{lockfile}" or
+        LOGDIE "Cannot open lockfile $self->{lockfile} ($!)";
+    flock($fh, LOCK_EX);
+
+    $self->{fh} = $fh;
+}
+
+###########################################
+sub unlock {
+###########################################
+    my($self) = @_;
+
+    if(! defined $self->{fh}) {
+        LOGDIE "Called unlock without previous lock";
+    }
+
+    flock($self->{fh}, LOCK_UN);
+    close $self->{fh};
+    $self->{fh} = undef;
+    unlink $self->{lockfile};
 }
 
 1;
@@ -208,6 +246,32 @@ The C<receivers> parameter specifies an array of receivers. The reason
 why this is an array an not a hash is that certain applications like to
 display all available receivers in a predefined order. Receivers are
 hashed internally by C<X10::Home> for quick lookups, though.
+
+=head2 METHODS
+
+=over 4
+
+=item C<new()>
+
+Constructor (parameters see above)
+
+=item C<send($name, $action)>
+
+Sends a message to the specified X10 receiver. Uses locking 
+(see C<lock/unlock> below)
+internally
+to make sure that no other X10 commands are sent over the wire at the same
+time, which would confuse the receivers.
+
+=item C<lock()>
+
+Aquire an exclusive lock.
+
+=item C<unlock()>
+
+Release the previously acquired exclusive lock.
+
+=back
 
 =head1 LEGALESE
 
