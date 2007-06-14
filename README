@@ -84,6 +84,22 @@ DESCRIPTION
     display all available receivers in a predefined order. Receivers are
     hashed internally by "X10::Home" for quick lookups, though.
 
+  METHODS
+    "new()"
+        Constructor (parameters see above)
+
+    "send($name, $action)"
+        Sends a message to the specified X10 receiver. Uses locking (see
+        "lock/unlock" below) internally to make sure that no other X10
+        commands are sent over the wire at the same time, which would
+        confuse the receivers.
+
+    "lock()"
+        Aquire an exclusive lock.
+
+    "unlock()"
+        Release the previously acquired exclusive lock.
+
 LEGALESE
     Copyright 2007 by Mike Schilli, all rights reserved. This program is
     free software, you can redistribute it and/or modify it under the same
