@@ -1,13 +1,13 @@
 ###########################################
 package X10::Home;
 ###########################################
-
 use strict;
 use warnings;
 use YAML qw(LoadFile);
 use Log::Log4perl qw(:easy);
 use Device::SerialPort;
 use Fcntl qw/:flock/;
+use DB_File;
 
 our $VERSION = "0.01";
 
@@ -30,6 +30,7 @@ sub new {
           status => undef,
         },
         lockfile   => '/tmp/x10_home.lock',
+        db_file    => undef,
         %options,
     };
 
@@ -78,7 +79,40 @@ sub init {
     $self->{receivers} = {
         map { $_->{name} => $_ } @{$self->{conf}->{receivers}} };
 
+    $self->db_init() if defined $self->{db_file};
+
     1;
+}
+
+###########################################
+sub db_init {
+###########################################
+    my($self) = @_;
+
+    $self->{dbm} = {};
+
+    dbmopen(%{$self->{dbm}},
+        $self->{db_file}, 0644) or
+        LOGDIE "Cannot open $self->{db_file}";
+
+    for (keys %{$self->{receivers}}) {
+        my $receiver = $self->{receivers}->{$_};
+        $self->{dbm}->{ $receiver->{name} } ||= "off";
+    }
+
+    1;
+}
+
+###########################################
+sub db_status {
+###########################################
+    my($self, $field, $value) = @_;
+
+    if(defined $value) {
+        $self->{dbm}->{ $field } = $value;
+    }
+
+    return $self->{dbm}->{ $field };
 }
 
 ###########################################
@@ -115,6 +149,8 @@ sub send {
                     $self->{commands}->{$cmd});
     }
 
+    $self->db_status($receiver, $cmd) if defined $self->{db_file};
+
     $self->unlock();
 
     1;
@@ -145,6 +181,14 @@ sub unlock {
     close $self->{fh};
     $self->{fh} = undef;
     unlink $self->{lockfile};
+}
+
+###########################################
+sub DESTROY {
+###########################################
+    my($self) = @_;
+
+    dbmclose(%{$self->{dbm}});
 }
 
 1;
@@ -253,7 +297,22 @@ hashed internally by C<X10::Home> for quick lookups, though.
 
 =item C<new()>
 
-Constructor (parameters see above)
+Constructor. Optional parameters are 
+
+=over 4
+
+=item C<conf_file>
+
+to specify the path to a special x10.conf file instead of the natural
+search order of system x10.conf files.
+
+=item C<db_file>
+
+to indicate that C<X10::Home> should be maintaining a persistent data
+store with assumed device status. To check/manipulate the maintained
+status, see C<db_status> below.
+
+=back
 
 =item C<send($name, $action)>
 
@@ -270,6 +329,21 @@ Aquire an exclusive lock.
 =item C<unlock()>
 
 Release the previously acquired exclusive lock.
+
+=item C<db_status($field, [$value])>
+
+For persistent storage of assumed device status, C<X10::Home> maintains
+a file-based data store (if the constructor is called with the C<db_file>
+parameter set to a persistent datastore location). 
+If a device gets switched on or off,
+C<X10::Home> will make a note of that in the data store. To query the
+(assumed) status of a device, use
+
+    my $x10 = X10::Home( db_file => "/tmp/x10.status" );
+
+    if( $x10->db_status("bedroom_lights") ) {
+        print "Bedroom lights are on!\n";
+    }
 
 =back
 

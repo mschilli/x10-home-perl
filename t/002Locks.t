@@ -11,7 +11,12 @@ use File::Temp qw(tempfile);
 
 plan tests => 3;
 
-my $x = X10::Home->new();
+my $eg = "eg";
+$eg = "../eg" unless -d $eg;
+
+my $x = X10::Home->new(
+    conf_file => "$eg/x10.conf"
+);
 
 my($fh, $filename) = tempfile(UNLINK => 1);
 
