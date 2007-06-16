@@ -6,13 +6,18 @@ NAME
     X10::Home - Configure X10 for your Home
 
 SYNOPSIS
-        # /etc/x10.conf Configuration File
+        # System-wide /etc/x10.conf Configuration File
+
         module: ControlX10::CM11
         device: /dev/ttyS0
         receivers:  
           - name: bedroom_lights
             code: K15
             desc: Bedroom Lights
+          - name: dsl_router
+            code: ...
+
+        # In your application:
 
         use X10::Home;
         my $x10->X10::Home->new();
@@ -25,7 +30,12 @@ DESCRIPTION
     them by name and without worrying about details like "house codes",
     "unit codes", "serial ports", X10 commands and other low-level details.
 
-    For example, to switch the bedroom lights on, simply use
+    "X10::Home" also maintains a status database to remember the assumed
+    status of cheap X10 devices without a feedback mechanism.
+
+  Usage
+    After a one-time setup of the "x10.conf" file, to switch the bedroom
+    lights on, simply use
 
         use X10::Home;
         my $x10->X10::Home->new();
@@ -64,11 +74,11 @@ DESCRIPTION
           - name: bedroom_lights
             code: K15
             desc: Bedroom Lights
-          - name: living_room_lights
+          - name: dsl_router
             code: K16
-            desc: Living Room Lights
+            desc: DSL Router
 
-    The "module" parameter specifies which X10 low-level module to use
+    The "module" parameter specifies which X10 low-level module to use,
     "ControlX10::CM11" or "ControlX10::CM17", it defaults to
     "ControlX10::CM11".
 
@@ -82,23 +92,47 @@ DESCRIPTION
     The "receivers" parameter specifies an array of receivers. The reason
     why this is an array an not a hash is that certain applications like to
     display all available receivers in a predefined order. Receivers are
-    hashed internally by "X10::Home" for quick lookups, though.
+    hashed internally by "X10::Home" by their "name" entries for quick
+    lookups, though.
 
   METHODS
     "new()"
-        Constructor (parameters see above)
+        Constructor. Optional parameters are
+
+        "conf_file"
+            to specify the path to a special x10.conf file instead of the
+            natural search order of system x10.conf files.
+
+        "db_file"
+            to indicate that "X10::Home" should be maintaining a persistent
+            data store with assumed device status. To check/manipulate the
+            maintained status, see "db_status" below.
 
     "send($name, $action)"
         Sends a message to the specified X10 receiver. Uses locking (see
         "lock/unlock" below) internally to make sure that no other X10
-        commands are sent over the wire at the same time, which would
-        confuse the receivers.
+        commands are sent over the wire by this sender at the same time,
+        which would confuse the receivers.
 
     "lock()"
         Aquire an exclusive lock.
 
     "unlock()"
         Release the previously acquired exclusive lock.
+
+    "db_status($field, [$value])"
+        For persistent storage of assumed device status, "X10::Home"
+        maintains a file-based data store (if the constructor is called with
+        the "db_file" parameter set to a persistent datastore location). If
+        a device gets switched on or off, "X10::Home" will make a note of
+        that in the data store. To query the (assumed) status of a device,
+        use
+
+            my $x10 = X10::Home( db_file => "/tmp/x10.status" );
+
+            if( $x10->db_status("bedroom_lights") ) {
+                print "Bedroom lights are on!\n";
+            }
 
 LEGALESE
     Copyright 2007 by Mike Schilli, all rights reserved. This program is

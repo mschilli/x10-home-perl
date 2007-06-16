@@ -201,13 +201,18 @@ X10::Home - Configure X10 for your Home
 
 =head1 SYNOPSIS
 
-    # /etc/x10.conf Configuration File
+    # System-wide /etc/x10.conf Configuration File
+
     module: ControlX10::CM11
     device: /dev/ttyS0
     receivers:  
       - name: bedroom_lights
         code: K15
         desc: Bedroom Lights
+      - name: dsl_router
+        code: ...
+
+    # In your application:
 
     use X10::Home;
     my $x10->X10::Home->new();
@@ -221,7 +226,13 @@ single configuration file. After that's done, applications can access
 them by name and without worrying about details like "house codes",
 "unit codes", "serial ports", X10 commands and other low-level details.
 
-For example, to switch the bedroom lights on, simply use
+C<X10::Home> also maintains a status database to remember the assumed
+status of cheap X10 devices without a feedback mechanism.
+
+=head2 Usage
+
+After a one-time setup of the C<x10.conf> file, to switch the bedroom
+lights on, simply use
 
     use X10::Home;
     my $x10->X10::Home->new();
@@ -271,12 +282,12 @@ The configuration file is written in YAML format and looks like this:
       - name: bedroom_lights
         code: K15
         desc: Bedroom Lights
-      - name: living_room_lights
+      - name: dsl_router
         code: K16
-        desc: Living Room Lights
+        desc: DSL Router
 
 The C<module> parameter specifies which X10 low-level module
-to use C<ControlX10::CM11> or C<ControlX10::CM17>, it defaults
+to use, C<ControlX10::CM11> or C<ControlX10::CM17>, it defaults
 to C<ControlX10::CM11>.
 
 The C<device> parameter specifies the device entry of the serial port 
@@ -289,7 +300,8 @@ port. It defaults to 4800.
 The C<receivers> parameter specifies an array of receivers. The reason
 why this is an array an not a hash is that certain applications like to
 display all available receivers in a predefined order. Receivers are
-hashed internally by C<X10::Home> for quick lookups, though.
+hashed internally by C<X10::Home> by their C<name> entries for quick 
+lookups, though.
 
 =head2 METHODS
 
@@ -319,8 +331,8 @@ status, see C<db_status> below.
 Sends a message to the specified X10 receiver. Uses locking 
 (see C<lock/unlock> below)
 internally
-to make sure that no other X10 commands are sent over the wire at the same
-time, which would confuse the receivers.
+to make sure that no other X10 commands are sent over the wire by this
+sender at the same time, which would confuse the receivers.
 
 =item C<lock()>
 

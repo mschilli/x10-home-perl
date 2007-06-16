@@ -7,3 +7,4 @@ MANIFEST.SKIP
 README
 t/001Basic.t
 t/002Locks.t
+t/003DB.t
