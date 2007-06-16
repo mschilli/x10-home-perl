@@ -16,6 +16,8 @@ my @CONF_PATHS = (
     "/etc/x10.conf",
 );
 
+my($STATUS_FILE) = glob("~/.x10.status");
+
 ###########################################
 sub new {
 ###########################################
@@ -30,7 +32,8 @@ sub new {
           status => undef,
         },
         lockfile   => '/tmp/x10_home.lock',
-        db_file    => undef,
+        db_file    => "/tmp/x10.status",
+        db_perm    => 0666,
         %options,
     };
 
@@ -92,8 +95,10 @@ sub db_init {
     $self->{dbm} = {};
 
     dbmopen(%{$self->{dbm}},
-        $self->{db_file}, 0644) or
+        $self->{db_file}, 0666) or
         LOGDIE "Cannot open $self->{db_file}";
+
+    chmod $self->{db_perm}, $self->{db_file};
 
     for (keys %{$self->{receivers}}) {
         my $receiver = $self->{receivers}->{$_};
@@ -149,7 +154,10 @@ sub send {
                     $self->{commands}->{$cmd});
     }
 
-    $self->db_status($receiver, $cmd) if defined $self->{db_file};
+    if(defined $self->{db_file}) {
+        DEBUG "Setting db status of $receiver to $cmd";
+        $self->db_status($receiver, $cmd);
+    }
 
     $self->unlock();
 
@@ -181,6 +189,21 @@ sub unlock {
     close $self->{fh};
     $self->{fh} = undef;
     unlink $self->{lockfile};
+}
+
+###########################################
+sub receivers {
+###########################################
+    my($self) = @_;
+    return keys %{$self->{receivers}};
+}
+
+###########################################
+sub command_valid {
+###########################################
+    my($self, $command) = @_;
+
+    return exists $self->{commands}->{$command};
 }
 
 ###########################################
@@ -321,8 +344,8 @@ search order of system x10.conf files.
 =item C<db_file>
 
 to indicate that C<X10::Home> should be maintaining a persistent data
-store with assumed device status. To check/manipulate the maintained
-status, see C<db_status> below.
+store with assumed device status. Defaults to C</tmp/x10.status>.
+To check/manipulate the maintained status, see C<db_status> below.
 
 =back
 
@@ -353,9 +376,25 @@ C<X10::Home> will make a note of that in the data store. To query the
 
     my $x10 = X10::Home( db_file => "/tmp/x10.status" );
 
-    if( $x10->db_status("bedroom_lights") ) {
+    if( $x10->db_status("bedroom_lights") eq "on" ) {
         print "Bedroom lights are on!\n";
     }
+
+=head1 Sample Applications
+
+The C<eg> directory contains a command line application C<x10> which 
+allows you to run X10 commands from the command line, e.g.
+
+    $ x10 office_lights on
+
+or 
+
+    $ x10 office_lights status
+    on
+
+The C<eg> directory also contains an AJAXed X10 web application, check
+out C<x10.cgi> and read the installation instructions at the top of
+the file.
 
 =back
 

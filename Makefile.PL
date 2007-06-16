@@ -10,6 +10,7 @@ WriteMakefile(
         Device::SerialPort => 1,
         DB_File            => 1.815,
     }, # e.g., Module::Name => 1.1
+    'EXE_FILES'    => ['eg/x10'],
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'Home.pm',
        AUTHOR     => 'Mike Schilli <m@perlmeister.com>') : ()),
