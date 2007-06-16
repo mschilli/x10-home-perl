@@ -105,8 +105,9 @@ DESCRIPTION
 
         "db_file"
             to indicate that "X10::Home" should be maintaining a persistent
-            data store with assumed device status. To check/manipulate the
-            maintained status, see "db_status" below.
+            data store with assumed device status. Defaults to
+            "/tmp/x10.status". To check/manipulate the maintained status,
+            see "db_status" below.
 
     "send($name, $action)"
         Sends a message to the specified X10 receiver. Uses locking (see
@@ -130,9 +131,24 @@ DESCRIPTION
 
             my $x10 = X10::Home( db_file => "/tmp/x10.status" );
 
-            if( $x10->db_status("bedroom_lights") ) {
+            if( $x10->db_status("bedroom_lights") eq "on" ) {
                 print "Bedroom lights are on!\n";
             }
+
+Sample Applications
+        The "eg" directory contains a command line application "x10" which
+        allows you to run X10 commands from the command line, e.g.
+
+            $ x10 office_lights on
+
+        or
+
+            $ x10 office_lights status
+            on
+
+        The "eg" directory also contains an AJAXed X10 web application,
+        check out "x10.cgi" and read the installation instructions at the
+        top of the file.
 
 LEGALESE
     Copyright 2007 by Mike Schilli, all rights reserved. This program is

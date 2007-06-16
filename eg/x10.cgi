@@ -5,7 +5,7 @@
 # same directory as x10.cgi. 
 # x10.js is expected in the server's document root (htdocs).
 # Also, please install YUI on your
-# webserver: http://developer.yahoo.com/yui
+# webserver under htdocs/yui: http://developer.yahoo.com/yui
 use strict;
 use CGI qw(:all);
 use Log::Log4perl qw(:easy);
