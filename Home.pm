@@ -9,7 +9,7 @@ use Device::SerialPort;
 use Fcntl qw/:flock/;
 use DB_File;
 
-our $VERSION = "0.01";
+our $VERSION = "0.02";
 
 my @CONF_PATHS = (
     glob("~/.x10.conf"),
@@ -238,7 +238,7 @@ X10::Home - Configure X10 for your Home
     # In your application:
 
     use X10::Home;
-    my $x10->X10::Home->new();
+    my $x10 = X10::Home->new();
       # Address services by name
     $x10->send("bedroom_lights", "on");
 
