@@ -1,5 +1,5 @@
 ######################################################################
-    X10::Home 0.01
+    X10::Home 0.02
 ######################################################################
 
 NAME
@@ -20,7 +20,7 @@ SYNOPSIS
         # In your application:
 
         use X10::Home;
-        my $x10->X10::Home->new();
+        my $x10 = X10::Home->new();
           # Address services by name
         $x10->send("bedroom_lights", "on");
 
