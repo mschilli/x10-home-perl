@@ -13,11 +13,15 @@ use X10::Home;
 
 plan tests => 1;
 
-my $eg = "eg";
-$eg = "../eg" unless -d $eg;
+SKIP: {
+  skip "No /dev/ttyS0 found", 1 unless -e "/dev/ttyS0";
 
-my $x10 = X10::Home->new(
-    conf_file => "$eg/x10.conf"
-);
+  my $eg = "eg";
+  $eg = "../eg" unless -d $eg;
 
-is($x10->{receivers}->{'office_lights'}->{code}, "K10", "Receiver Code");
+  my $x10 = X10::Home->new(
+      conf_file => "$eg/x10.conf"
+  );
+  
+  is($x10->{receivers}->{'office_lights'}->{code}, "K10", "Receiver Code");
+} 

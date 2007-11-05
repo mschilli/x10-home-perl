@@ -11,43 +11,46 @@ use File::Temp qw(tempdir);
 
 plan tests => 4;
 
-my($dir) = tempdir(CLEANUP => 1);
+SKIP: {
+  skip "No /dev/ttyS0 found", 4 unless -e "/dev/ttyS0";
 
-my $eg = "eg";
-$eg = "../eg" unless -d $eg;
-
-my $x = X10::Home->new(
-    conf_file => "$eg/x10.conf",
-    db_file   => "$dir/foo",
-);
-
-$x->db_status("foo", "bar");
-is($x->db_status("foo"), "bar", "Storing status in DB");
-
-$x->db_status("foo", "baz");
-is($x->db_status("foo"), "baz", "Storing status in DB");
-
-  # dbmclose
-undef $x;
-
-  # re-init
-$x = X10::Home->new(
-    conf_file => "$eg/x10.conf",
-    db_file   => "$dir/foo",
-);
-
-is($x->db_status("foo"), "baz", "Retrieved persistent status");
-
-$x->db_status("foo", "bar");
-
-  # dbmclose
-undef $x;
-
-  # re-init
-$x = X10::Home->new(
-    conf_file => "$eg/x10.conf",
-    db_file   => "$dir/foo",
-);
-
-is($x->db_status("foo"), "bar", "Retrieved persistent status");
-
+  my($dir) = tempdir(CLEANUP => 1);
+  
+  my $eg = "eg";
+  $eg = "../eg" unless -d $eg;
+  
+  my $x = X10::Home->new(
+      conf_file => "$eg/x10.conf",
+      db_file   => "$dir/foo",
+  );
+  
+  $x->db_status("foo", "bar");
+  is($x->db_status("foo"), "bar", "Storing status in DB");
+  
+  $x->db_status("foo", "baz");
+  is($x->db_status("foo"), "baz", "Storing status in DB");
+  
+    # dbmclose
+  undef $x;
+  
+    # re-init
+  $x = X10::Home->new(
+      conf_file => "$eg/x10.conf",
+      db_file   => "$dir/foo",
+  );
+  
+  is($x->db_status("foo"), "baz", "Retrieved persistent status");
+  
+  $x->db_status("foo", "bar");
+  
+    # dbmclose
+  undef $x;
+  
+    # re-init
+  $x = X10::Home->new(
+      conf_file => "$eg/x10.conf",
+      db_file   => "$dir/foo",
+  );
+  
+  is($x->db_status("foo"), "bar", "Retrieved persistent status");
+}

@@ -9,7 +9,7 @@ use Device::SerialPort;
 use Fcntl qw/:flock/;
 use DB_File;
 
-our $VERSION = "0.02";
+our $VERSION = "0.03";
 
 my @CONF_PATHS = (
     glob("~/.x10.conf"),
