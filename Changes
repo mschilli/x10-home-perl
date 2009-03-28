@@ -1,6 +1,9 @@
 ######################################################################
 Revision history for Perl extension X10::Home
 
+0.04  2009/03/28
+    (ms) Test suite now works without a functioning X10 device.
+
 0.03  2007/11/04
     (ms) skipping tests if /dev/ttyS0 isn't found
 

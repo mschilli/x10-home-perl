@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 # CGI script for the X10 console web application.
 # 
 # Requires the x10.tmpl file to be installed in the 
@@ -38,4 +38,4 @@ if(!defined $device or $device =~ /\W/) {
   exit 0;
 }
 
-system "/usr/bin/x10", $device, param("action");
+system "/home/mschilli/PERL/bin/x10", $device, param("action");

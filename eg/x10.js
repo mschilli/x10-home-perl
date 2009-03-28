@@ -53,7 +53,7 @@ function x10remote(device, action) {
       argument: { }
     };
 
-    var url = "/cgi-bin/x10.cgi?action=" + 
+    var url = "/cgi/x10.cgi?action=" + 
                action + "&device=" + device;
     callback.argument.device = device;
     callback.argument.cmd    = action;

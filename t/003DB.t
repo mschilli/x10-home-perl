@@ -22,6 +22,7 @@ SKIP: {
   my $x = X10::Home->new(
       conf_file => "$eg/x10.conf",
       db_file   => "$dir/foo",
+      probe     => 0,
   );
   
   $x->db_status("foo", "bar");
@@ -37,6 +38,7 @@ SKIP: {
   $x = X10::Home->new(
       conf_file => "$eg/x10.conf",
       db_file   => "$dir/foo",
+      probe     => 0,
   );
   
   is($x->db_status("foo"), "baz", "Retrieved persistent status");
@@ -50,6 +52,7 @@ SKIP: {
   $x = X10::Home->new(
       conf_file => "$eg/x10.conf",
       db_file   => "$dir/foo",
+      probe     => 0,
   );
   
   is($x->db_status("foo"), "bar", "Retrieved persistent status");

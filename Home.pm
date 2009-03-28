@@ -9,7 +9,7 @@ use Device::SerialPort;
 use Fcntl qw/:flock/;
 use DB_File;
 
-our $VERSION = "0.03";
+our $VERSION = "0.04";
 
 my @CONF_PATHS = (
     glob("~/.x10.conf"),
@@ -34,6 +34,7 @@ sub new {
         lockfile   => '/tmp/x10_home.lock',
         db_file    => "/tmp/x10.status",
         db_perm    => 0666,
+        probe      => 1,
         %options,
     };
 
@@ -74,10 +75,12 @@ sub init {
 
     eval "require $self->{conf}->{module}";
 
-    $self->{serial} = Device::SerialPort->new(
-        $self->{conf}->{device}, undef);
+    if($self->{probe}) {
+        $self->{serial} = Device::SerialPort->new(
+            $self->{conf}->{device}, undef);
 
-    $self->{serial}->baudrate($self->{conf}->{baudrate});
+        $self->{serial}->baudrate($self->{conf}->{baudrate});
+    }
 
     $self->{receivers} = {
         map { $_->{name} => $_ } @{$self->{conf}->{receivers}} };

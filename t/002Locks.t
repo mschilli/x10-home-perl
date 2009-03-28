@@ -12,13 +12,13 @@ use File::Temp qw(tempfile);
 plan tests => 3;
 
 SKIP: {
-  skip "No /dev/ttyS0 found", 3 unless -e "/dev/ttyS0";
 
   my $eg = "eg";
   $eg = "../eg" unless -d $eg;
   
   my $x = X10::Home->new(
-      conf_file => "$eg/x10.conf"
+      conf_file => "$eg/x10.conf",
+      probe     => 0,
   );
   
   my($fh, $filename) = tempfile(UNLINK => 1);
