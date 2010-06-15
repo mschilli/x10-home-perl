@@ -1,4 +1,13 @@
 use ExtUtils::MakeMaker;
+
+my $meta_merge = {
+    META_MERGE => {
+        resources => {
+            repository  => 'http://github.com/mschilli/x10-home-perl',
+        },
+    }
+};
+
 WriteMakefile(
     'NAME'         => 'X10::Home',
     'VERSION_FROM' => 'Home.pm', # finds $VERSION
@@ -10,6 +19,7 @@ WriteMakefile(
         Device::SerialPort => 1,
         DB_File            => 1.815,
     }, # e.g., Module::Name => 1.1
+    $ExtUtils::MakeMaker::VERSION >= 6.50 ? (%$meta_merge) : (),
     'EXE_FILES'    => ['eg/x10'],
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'Home.pm',
